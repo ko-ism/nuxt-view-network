@@ -1,3 +1,3 @@
 # nuxt-view-network
 
-> d3.jsでネットワーク図を描画
+> Vue.js/Nuxt.js上で、d3.jsを使ったネットワーク図を描画

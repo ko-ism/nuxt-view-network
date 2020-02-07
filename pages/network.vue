@@ -1,11 +1,15 @@
 <template>
-  
   <div class="network">
+    <select v-model="fileName">
+      <option disabled value="">Please select one</option>
+      <option>/network_test1.json</option>
+      <option>/network_test2.json</option>
+    </select>
+    <span>Selected: {{ fileName }}</span>
       <svg width="960" height="960"></svg>
-      {{ viewFileName }}
+      <!-- fileDataをそのまま扱う手法はうまくいっていない。
       <button v-on:click="change('/network_test1.json')">1</button>
-      <button v-on:click="change('/network_test2.json')">2</button>
-      
+      <button v-on:click="change('/network_test2.json')">2</button> -->
   </div>
   
 </template>
@@ -17,112 +21,39 @@
           fileName: "/network_test1.json"
         }
       },
-      mounted: function(){
-          
-        var svg = d3.select("svg"),
-            width = +svg.attr("width"),
-            height = +svg.attr("height");
-        // var svg = d3.select("svg"),
-        //     width = 960,
-        //     height = 960;
+      created: function() {
+        
+      },
+      mounted: async function(){
+        // fileDataをそのまま扱う手法はうまくいっていない。
+        // await this.$store.dispatch('view_network/changeDataAction', this.fileName);
 
-        var color = d3.scaleOrdinal(d3.schemeCategory20);
+        this.$store.dispatch('view_network/viewNetwork', this.fileName);
 
-        var simulation = d3.forceSimulation()
-            .force("link", d3.forceLink()
-                .id(function(d) { return d.id; }).distance(function(d){ return d.value*400}))
-            .force("charge", d3.forceManyBody())
-            .force("center", d3.forceCenter(width / 2, height / 2));
+      },
+      watch: {
+        fileName: function(newValue) {
+          console.log("watch:" + newValue);
 
-        console.log("mounted:" + this.$store.state.fileName);
-        d3.json(this.fileName, function(error, graph) {
-        // d3.json(this.$store.state.fileName, function(error, graph) {
-            if (error) throw error;
+          // 描画されている情報を削除
+          d3.select('svg').selectAll('*').remove();
 
+          // 新しいファイルで再描画
+          this.$store.dispatch('view_network/viewNetwork', newValue);
 
-            var link = svg.append("g")
-                .attr("class", "links")
-                .selectAll("line")
-                .data(graph.links)
-                .enter().append("line")
-                // 線の太さ
-                .attr("stroke-width", function(d) { return Math.sqrt(d.value); });
-
-            var node = svg.append("g")
-                .attr("class", "nodes")
-                .selectAll("g")
-                .data(graph.nodes)
-                .enter().append("g")
-                
-            var circles = node.append("circle")
-                .attr("r", 5)
-                .attr("fill", function(d) { return color(d.group); })
-                .call(d3.drag()
-                    .on("start", dragstarted)
-                    .on("drag", dragged)
-                    .on("end", dragended));
-
-            var lables = node.append("text")
-                .text(function(d) {
-                    return d.id;
-                })
-                .attr('x', 6)
-                .attr('y', 3);
-
-            node.append("title")
-                .text(function(d) { return d.id; });
-
-            simulation
-                .nodes(graph.nodes)
-                .on("tick", ticked);
-
-            simulation.force("link")
-                .links(graph.links);
-
-            function ticked() {
-                link
-                    .attr("x1", function(d) { return d.source.x; })
-                    .attr("y1", function(d) { return d.source.y; })
-                    .attr("x2", function(d) { return d.target.x; })
-                    .attr("y2", function(d) { return d.target.y; });
-
-                node
-                    .attr("transform", function(d) {
-                    return "translate(" + d.x + "," + d.y + ")";
-                    })
-            }
-        });
-
-        function dragstarted(d) {
-        if (!d3.event.active) simulation.alphaTarget(0.3).restart();
-            d.fx = d.x;
-            d.fy = d.y;
         }
-
-        function dragged(d) {
-            d.fx = d3.event.x;
-            d.fy = d3.event.y;
-        }
-
-        function dragended(d) {
-        if (!d3.event.active) simulation.alphaTarget(0);
-            d.fx = null;
-            d.fy = null;
-        }
-
       },
       methods: {
-        change(name){
-            // console.log(name);
-            // this.item_file = name;
-            this.$store.commit('view_network/changeData', name);
-        }
+        // fileDataをそのまま扱う手法はうまくいっていない。
+        // change(name){
+        //     // console.log(name);
+        //     // this.item_file = name;
+        //     this.$store.dispatch('view_network/changeDataAction', name);
+        // }
+
       },
       computed: {
-        viewFileName(){
-        //   return this.$store.state.fileName
-          return this.$store.getters['view_network/getFileName']
-        }
+
       }
   }
 </script>
